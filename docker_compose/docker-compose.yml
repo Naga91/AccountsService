@@ -1,0 +1,30 @@
+---
+version: "3.8"
+
+services:
+  accounts:
+    image: nagat91/nt-accounts:latest
+    mem_limit: 700m
+    ports:
+      - 8080:8080
+    networks:
+      - nt-network
+
+  loans:
+    image: nagat91/nt-loans:latest
+    mem_limit: 700m
+    ports:
+      - 8090:8090
+    networks:
+      - nt-network
+
+  cards:
+    image: nagat91/nt-cards:latest
+    mem_limit: 700m
+    ports:
+      - 9000:9000
+    networks:
+      - nt-network
+
+networks: 
+  nt-network:

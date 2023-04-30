@@ -1,0 +1,120 @@
+---
+version: "3.8"
+services:
+
+  configserver:
+    image: nagat91/configserver:latest
+    mem_limit: 700m
+    ports:
+      - 8071:8071
+    networks:
+      - nt-network
+
+  eurekaserver:
+    image: nagat91/eurekaserver:latest
+    mem_limit: 700m
+    ports:
+      - 8070:8070
+    networks:
+      - nt-network
+    depends_on:
+      - configserver
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 3
+        window: 120s
+    environment:
+      SPRING_PROFILES_ACTIVE: dev      
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+
+  accounts:
+    image: nagat91/accounts:latest
+    mem_limit: 700m
+    ports:
+      - 8080:8080
+    networks:
+      - nt-network
+    depends_on:
+      - configserver
+      - eurekaserver
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 3
+        window: 120s
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka/
+
+  loans:
+    image: nagat91/loans:latest
+    mem_limit: 700m
+    ports:
+      - 8090:8090
+    networks:
+      - nt-network
+    depends_on:
+      - configserver
+      - eurekaserver
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 3
+        window: 120s
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka/
+
+  cards:
+    image: nagat91/cards:latest
+    mem_limit: 700m
+    ports:
+      - 9000:9000
+    networks:
+      - nt-network
+    depends_on:
+      - configserver
+      - eurekaserver
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 3
+        window: 120s
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka/
+
+  gatewayserver:
+    image: nagat91/gatewayserver:latest
+    mem_limit: 700m
+    ports:
+      - 8072:8072
+    networks:
+      - nt-network
+    depends_on:
+      - configserver
+      - eurekaserver
+      - accounts
+      - loans
+      - cards
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 50s
+        max_attempts: 3
+        window: 180s
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka/
+
+networks:
+  nt-network: 
